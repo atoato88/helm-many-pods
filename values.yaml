@@ -1,0 +1,64 @@
+---
+name: "many-pods"
+
+image:
+  repository: "alpine"
+  tag: "latest"
+  pullPolicy: Always
+
+many_pods:
+  replicas: 2
+  commands:
+  - "sh"
+  - "-c"
+  - "echo Hello Kubernetes! && sleep 120"
+  val1: "sample-val1"
+  secVal1: "sample-secVal1"
+  ## Pod annotations
+  ##
+  # podAnnotations:
+  #   prometheus.io/scrape: "true"
+  #   prometheus.io/port: 80
+  #   prometheus.io/path: "/-/metrics"
+nodeSelector: {}
+
+service:
+  type: ClusterIP
+  httpPort: 80
+  sshPort: 22
+
+resources:
+  requests:
+    memory: 2Mi 
+#    cpu: 1
+
+persistentVolume:
+  ## If true, will create/use a Persistent Volume Claim
+  ## If false, use emptyDir
+  ##
+  enabled: false
+
+  ## Persistent Volume access modes
+  ## Must match those of existing PV or dynamic provisioner
+  ## Ref: http://kubernetes.io/docs/user-guide/persistent-volumes/
+  ##
+  accessModes:
+    - ReadWriteOnce
+
+  ## Persistent Volume Claim annotations
+  ##
+  annotations: {}
+
+  ## Persistent Volume existing claim name
+  ## If defined, PVC must be created manually before volume will be bound
+  existingClaim: ""
+
+  ## Persistent Volume size
+  ##
+  size: 2Gi
+
+  ## Persistent Volume Storage Class
+  ## If defined, volume.beta.kubernetes.io/storage-class: <storageClass>
+  ## Default: volume.alpha.kubernetes.io/storage-class: default
+  ##
+  storageClass: ""

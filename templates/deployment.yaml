@@ -1,0 +1,63 @@
+---
+kind: Deployment
+apiVersion: extensions/v1beta1
+metadata:
+  labels:
+    app: {{ template "many_pods.fullname" . }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    component: "{{ .Values.name }}"
+    heritage: "{{ .Release.Service }}"
+    release: "{{ .Release.Name }}"
+  name: {{ template "many_pods.fullname" . }}
+spec:
+  replicas: {{ .Values.many_pods.replicas }}
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+    {{- if .Values.many_pods.podAnnotations }}
+      annotations:
+{{ toYaml .Values.many_pods.podAnnotations | indent 8 }}
+    {{- end }}
+      labels:
+        app: {{ template "many_pods.fullname" . }}
+        component: "{{ .Values.name }}"
+        release: {{ .Release.Name }}
+    spec:
+      nodeSelector:
+{{ toYaml .Values.nodeSelector | indent 8 }}
+      containers:
+      - name: gitlab
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: "{{ .Values.image.pullPolicy }}"
+        command:
+        {{- range .Values.many_pods.commands }}
+        - {{ . | quote }}
+        {{- end }}
+        resources:
+{{ toYaml .Values.resources | indent 10 }}
+        ports:
+        - name: http
+          containerPort: 80
+        envFrom:
+        - configMapRef:
+            name: {{ template "many_pods.fullname" . }}
+        - secretRef:
+            name: {{ template "many_pods.fullname" . }}
+        env:
+        {{- range $key, $value :=  .Values.env }}
+        - name: {{ $key | upper | replace "-" "_" }}
+          value: '{{ $value }}'
+        {{- end }}
+        volumeMounts:
+        - name: data
+          mountPath: /data
+          readOnly: false
+      volumes:
+        - name: data
+        {{- if .Values.persistentVolume.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ if .Values.persistentVolume.existingClaim }}{{ .Values.persistentVolume.existingClaim }}{{- else }}{{ template "many_pods.fullname" . }}{{- end }}
+        {{- else }}
+          emptyDir: {}
+        {{- end -}}

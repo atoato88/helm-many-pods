@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{template "many_pods.fullname" .}}
+  labels:
+    app: {{ template "many_pods.fullname" . }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    component: "{{ .Values.name }}"
+    heritage: "{{ .Release.Service }}"
+    release: "{{ .Release.Name }}"
+spec:
+  type: {{ .Values.service.type }}
+  selector:
+    app: {{ template "many_pods.fullname" . }}
+    release: "{{ .Release.Name }}"
+  ports:
+  - name: http
+    port: {{ .Values.service.httpPort }}
+    targetPort: http
+    protocol: TCP

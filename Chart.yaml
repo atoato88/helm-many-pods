@@ -1,0 +1,7 @@
+apiVersion: v1
+description: A Helm chart for creating many pods
+name: many-pods
+version: 0.0.1
+maintainers:
+  - name: Akihito, INOH
+    email: atoato88+github@gmail.com
